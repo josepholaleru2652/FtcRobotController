@@ -52,12 +52,12 @@ public class Autonomous extends LinearOpMode {
         setAllPower(0, 0, 0, 0);
     }
     public void moveForward(double power, long time) {
-        setAllPower(power, power, power, power);
+        setAllPower(-power, -power, -power, -power);
         sleep(time);
         stopAllMotors();
     }
     public void moveBackwards(double power, long time) {
-        setAllPower(-power, -power, -power, -power);
+        setAllPower(power, power, power, power);
         sleep(time);
         stopAllMotors();
     }
@@ -72,12 +72,12 @@ public class Autonomous extends LinearOpMode {
         stopAllMotors();
     }
     public void turnRight(double power, long time) {
-        setAllPower(power, -power, power, -power);
+        setAllPower(-power, power, -power, power);
         sleep(time);
         stopAllMotors();
     }
     public void turnLeft(double power, long time) {
-        setAllPower(-power, power, -power, power);
+        setAllPower(power, -power, power, -power);
         sleep(time);
         stopAllMotors();
     }
