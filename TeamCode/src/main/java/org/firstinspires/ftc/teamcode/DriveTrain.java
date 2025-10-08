@@ -25,10 +25,10 @@ public class DriveTrain extends OpMode {
 
     @Override
     public void init() {
-        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
-        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
-        backRight = hardwareMap.get(DcMotor.class, "backRight");
+        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");//0
+        frontRight = hardwareMap.get(DcMotor.class, "frontRight");//1
+        backLeft = hardwareMap.get(DcMotor.class, "backLeft");//2
+        backRight = hardwareMap.get(DcMotor.class, "backRight");//3
 
         //making motors either move backwords, frontwards,or left/right
         //the reason the right ones are reversed it because they're facing an opposite direction from the left
@@ -51,9 +51,9 @@ public class DriveTrain extends OpMode {
         // Forward/backward: -left_stick_y
         // Turn left/right: left_stick_x
 
-        double drive = -gamepad1.left_stick_y; // forward/backward
-        double turn = gamepad1.right_stick_x;  // rotation
-        double strafe = gamepad1.left_stick_x; // lateral
+        double drive = gamepad1.left_stick_y; // forward/backward
+        double turn = -gamepad1.right_stick_x;  // rotation
+        double strafe = -gamepad1.left_stick_x; // lateral
 
         double frontLeftPower  = drive + strafe + turn;
         double frontRightPower = drive - strafe - turn;
@@ -76,14 +76,52 @@ public class DriveTrain extends OpMode {
         frontRight.setPower(frontRightPower);
         backLeft.setPower(backLeftPower);
         backRight.setPower(backRightPower);
-
+        //mention if robot is strafing, turning, or going forward/backwards
+        telemetry.addData("Status", "Running");
+        if (Math.abs(strafe) > 0.1) {
+            telemetry.addData("Movement", "Strafing");
+        } else if (Math.abs(turn) > 0.1) {
+            telemetry.addData("Movement", "Turning");
+        } else if (Math.abs(drive) > 0.1) {
+            telemetry.addData("Movement", "Driving");
+        } else {
+            telemetry.addData("Movement", "Idle");
+        }
         telemetry.addData("frontLeftPower", frontLeftPower);
+        //mention if negative or positive
+        if (frontLeftPower > 0) {
+            telemetry.addData("frontLeftDirection", "Backward");
+        } else if (frontLeftPower < 0) {
+            telemetry.addData("frontLeftDirection", "Forward");
+        } else {
+            telemetry.addData("frontLeftDirection", "Stopped");
+        }
         telemetry.addData("frontRightPower", frontRightPower);
+        //mention if negative or positive
+        if (frontRightPower > 0) {
+            telemetry.addData("frontRightDirection", "Backward");
+        } else if (frontRightPower < 0) {
+            telemetry.addData("frontRightDirection", "Forward");
+        } else {
+            telemetry.addData("frontRightDirection", "Stopped");
+        }
         telemetry.addData("backLeftPower", backLeftPower);
+        //mention if negative or positive
+        if (backLeftPower > 0) {
+            telemetry.addData("backLeftDirection", "Backward");
+        } else if (backLeftPower < 0) {
+            telemetry.addData("backLeftDirection", "Forward");
+        } else {
+            telemetry.addData("backLeftDirection", "Stopped");
+        }
         telemetry.addData("backRightPower", backRightPower);
+        if (backRightPower > 0) {
+            telemetry.addData("backRightDirection", "Backward");
+        } else if (backRightPower < 0) {
+            telemetry.addData("backRightDirection", "Forward");
+        } else {
+            telemetry.addData("backRightDirection", "Stopped");
+        }
         telemetry.update();
     }
 }
-
-
-
