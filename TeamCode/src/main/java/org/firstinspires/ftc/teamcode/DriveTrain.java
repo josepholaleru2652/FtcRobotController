@@ -60,6 +60,18 @@ public class DriveTrain extends OpMode {
         double backLeftPower   = drive - strafe + turn;
         double backRightPower  = drive + strafe - turn;
 
+        double max = Math.max(Math.abs(frontLeftPower),
+             Math.max(Math.abs(frontRightPower),
+             Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))));
+
+        if (max > 1.0) {
+            frontLeftPower  /= max;
+            frontRightPower /= max;
+            backLeftPower   /= max;
+            backRightPower  /= max;
+        }
+
+
         frontLeft.setPower(frontLeftPower);
         frontRight.setPower(frontRightPower);
         backLeft.setPower(backLeftPower);
