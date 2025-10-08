@@ -48,29 +48,27 @@ public class DriveTrain extends OpMode {
 
 
     public void loop() {
-        // Forward/backward: -right_stick_y
-        // Turn left/right: right_stick_x
+        // Forward/backward: -left_stick_y
+        // Turn left/right: left_stick_x
 
-        double drive = -gamepad1.right_stick_y; // forward/backward
-        double turn = gamepad1.left_stick_x;   // rotation
+        double drive = -gamepad1.left_stick_y; // forward/backward
+        double turn = gamepad1.right_stick_x;  // rotation
+        double strafe = gamepad1.left_stick_x; // lateral
 
-        double leftPower = drive + turn;
-        double rightPower = drive - turn;
+        double frontLeftPower  = drive + strafe + turn;
+        double frontRightPower = drive - strafe - turn;
+        double backLeftPower   = drive - strafe + turn;
+        double backRightPower  = drive + strafe - turn;
 
-        // Normalize so neither exceeds 1.0 ()
-        double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-        if (max > 1.0) {
-            leftPower /= max;
-            rightPower /= max;
-        }
+        frontLeft.setPower(frontLeftPower);
+        frontRight.setPower(frontRightPower);
+        backLeft.setPower(backLeftPower);
+        backRight.setPower(backRightPower);
 
-        frontLeft.setPower(leftPower);
-        frontRight.setPower(rightPower);
-        backLeft.setPower(leftPower);
-        backRight.setPower(rightPower);
-
-        telemetry.addData("leftPower", leftPower);
-        telemetry.addData("rightPower", rightPower);
+        telemetry.addData("frontLeftPower", frontLeftPower);
+        telemetry.addData("frontRightPower", frontRightPower);
+        telemetry.addData("backLeftPower", backLeftPower);
+        telemetry.addData("backRightPower", backRightPower);
         telemetry.update();
     }
 }
