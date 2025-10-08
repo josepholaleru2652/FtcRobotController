@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name="DriveTrain_Linear", group="TeleOp")
-public class DriveTrainLinearVersion extends LinearOpMode {
+public class Autonomous extends LinearOpMode {
     private DcMotor frontLeft = null;
     private DcMotor frontRight = null;
     private DcMotor backLeft = null;
