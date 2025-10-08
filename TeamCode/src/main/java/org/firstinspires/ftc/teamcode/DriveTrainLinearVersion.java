@@ -9,8 +9,6 @@ import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name="DriveTrain_Linear", group="TeleOp")
 public class DriveTrainLinearVersion extends LinearOpMode {
-
-    private ElapsedTime runtime = new ElapsedTime();
     private DcMotor frontLeft = null;
     private DcMotor frontRight = null;
     private DcMotor backLeft = null;
@@ -39,28 +37,48 @@ public class DriveTrainLinearVersion extends LinearOpMode {
 
         // Wait for driver to press PLAY
         waitForStart();
-        runtime.reset();
 
         while (opModeIsActive()) {
-            // Now:
-            // Forward/back = -right_stick_y
-            // Turn = left_stick_x
-            double drive = -gamepad1.right_stick_y;
-            double turn = gamepad1.left_stick_x;
 
-            double leftPower = Range.clip(drive + turn, -1.0, 1.0);
-            double rightPower = Range.clip(drive - turn, -1.0, 1.0);
-
-            // Set motor power
-            frontLeft.setPower(leftPower);
-            backLeft.setPower(leftPower);
-            frontRight.setPower(rightPower);
-            backRight.setPower(rightPower);
-
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Left Power", "%.2f", leftPower);
-            telemetry.addData("Right Power", "%.2f", rightPower);
-            telemetry.update();
         }
+    }
+    private void setAllPower(double fl, double fr, double bl, double br) {
+        frontLeft.setPower(fl);
+        frontRight.setPower(fr);
+        backLeft.setPower(bl);
+        backRight.setPower(br);
+    }
+    public void stopAllMotors() {
+        setAllPower(0, 0, 0, 0);
+    }
+    public void moveForward(double power, long time) {
+        setAllPower(power, power, power, power);
+        sleep(time);
+        stopAllMotors();
+    }
+    public void moveBackwards(double power, long time) {
+        setAllPower(-power, -power, -power, -power);
+        sleep(time);
+        stopAllMotors();
+    }
+    public void strafeRight(double power, long time) {
+        setAllPower(power, -power, -power, power);
+        sleep(time);
+        stopAllMotors();
+    }
+    public void strafeLeft(double power, long time) {
+        setAllPower(-power, power, power, -power);
+        sleep(time);
+        stopAllMotors();
+    }
+    public void turnRight(double power, long time) {
+        setAllPower(power, -power, power, -power);
+        sleep(time);
+        stopAllMotors();
+    }
+    public void turnLeft(double power, long time) {
+        setAllPower(-power, power, -power, power);
+        sleep(time);
+        stopAllMotors();
     }
 }
