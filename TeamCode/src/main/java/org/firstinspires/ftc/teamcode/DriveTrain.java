@@ -53,7 +53,7 @@ public class DriveTrain extends OpMode {
 
         double drive = gamepad1.left_stick_y; // forward/backward
         double turn = -gamepad1.right_stick_x;  // rotation
-        double strafe = -gamepad1.left_stick_x; // lateral
+        double strafe = gamepad1.left_stick_x; // lateral
 
         double frontLeftPower  = drive + strafe + turn;
         double frontRightPower = drive - strafe - turn;
