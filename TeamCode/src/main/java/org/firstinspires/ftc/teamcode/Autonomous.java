@@ -32,6 +32,17 @@ public class Autonomous extends LinearOpMode {
         backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        // reset encoders and set motors to run using encoders
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
@@ -39,8 +50,45 @@ public class Autonomous extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-
+            moveForwardByInches(0.5, 24); // move forward 24 inches
+            sleep(1000);
+            moveForwardByInches(0.5, -24); // move back 24 inches
         }
+    }
+    public void moveForwardByInches(double power, double inches) {
+        int TICKS_PER_REV = 6767; // find ticks per full rotation for motors
+        double WHEEL_DIAMETER_INCHES = 67.41; // find wheel diameter
+        double TICKS_PER_INCH = TICKS_PER_REV / (Math.PI * WHEEL_DIAMETER_INCHES); // some math stuff ig
+
+        int targetPosition = (int) (inches * TICKS_PER_INCH);
+
+        // Set target positions for all motors
+        frontLeft.setTargetPosition(frontLeft.getCurrentPosition() + targetPosition);
+        frontRight.setTargetPosition(frontRight.getCurrentPosition() + targetPosition);
+        backLeft.setTargetPosition(backLeft.getCurrentPosition() + targetPosition);
+        backRight.setTargetPosition(backRight.getCurrentPosition() + targetPosition);
+
+        // Switch to RUN_TO_POSITION mode
+        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        setAllPower(power, power, power, power);
+
+        // Wait until motors reach target
+        while (opModeIsActive() && frontLeft.isBusy() && frontRight.isBusy()) {
+            telemetry.addData("Moving Forward", "Target: %d", targetPosition);
+            telemetry.update();
+        }
+
+        stopAllMotors();
+
+        // Set motors back to normal mode
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
     private void setAllPower(double fl, double fr, double bl, double br) {
         frontLeft.setPower(fl);
