@@ -51,7 +51,7 @@ public class Autonomous extends LinearOpMode {
 
         while (opModeIsActive()) {
             moveForwardByInches(0.5, 24); // move forward 24 inches
-            sleep(1000);
+            sleep(1000); // this code runs it using time instead of encode
             moveForwardByInches(0.5, -24); // move back 24 inches
         }
     }
