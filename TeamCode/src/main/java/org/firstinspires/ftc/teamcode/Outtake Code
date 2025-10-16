@@ -1,0 +1,32 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.util.ElapsedTime; // to set time restraints on outtake if required
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp; // to be able to run in TeleOp (technically running constantly)
+import com.qualcomm.robotcore.hardware.DcMotor; // to install dcmotor library into code
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.Range; //we used the range method just to keep the motor powers to 1 and -1
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+
+@TeleOp (name = "Outtake", group = "OpMode") 
+public class OuttakeCode extends OpMode {
+
+  private DcMotor main;
+
+  @Override 
+  public void init(){
+    
+    main = hardwareMap.get(DcMotor.class, "main");
+
+    // sets motor direction to forward
+    main.setDirection(DcMotorSimple.Direction.FORWARD);
+
+    // telemetry for debugging init
+    telemetry.addData("Status", "Motors init success");
+    telemetry.update();
+
+    }
+}
+
+
+
