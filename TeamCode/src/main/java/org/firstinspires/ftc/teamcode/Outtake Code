@@ -8,25 +8,36 @@ import com.qualcomm.robotcore.util.Range; //we used the range method just to kee
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+double i = 0;
 @TeleOp (name = "Outtake", group = "OpMode") 
 public class OuttakeCode extends OpMode {
 
-  private DcMotor main;
+  private DcMotor outtakeMotor;
 
   @Override 
   public void init(){
     
-    main = hardwareMap.get(DcMotor.class, "main");
+    main = hardwareMap.get(DcMotor.class, "outtakeMotor");
 
     // sets motor direction to forward
-    main.setDirection(DcMotorSimple.Direction.FORWARD);
+    outtakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
     // telemetry for debugging init
     telemetry.addData("Status", "Motors init success");
     telemetry.update();
 
     }
+
+  public void loop(){
+
+    if (i < 1){
+        i += 0.05
+      }
+    outtakeMotor.setPower(i);
 }
+}
+
+    
 
 
 
