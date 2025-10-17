@@ -64,7 +64,7 @@ public class DriveTrain extends OpMode {
              Math.max(Math.abs(frontRightPower),
              Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))));
 
-        if (max > 0.8) {
+        if (max > 0.5) {
             frontLeftPower  /= max;
             frontRightPower /= max;
             backLeftPower   /= max;
