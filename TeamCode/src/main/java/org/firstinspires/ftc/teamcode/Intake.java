@@ -25,5 +25,11 @@ public class Intake extends OpMode {
         } else {
             intakeMotor.setPower(0.0); //stop intake motor
         }
+        //if r2 pressed run intake
+        if(gamepad1.right_trigger > 0) {
+            intakeMotor.setPower(1.0);
+        } else {
+            intakeMotor.setPower(0.0);
+        }
     }
 }
