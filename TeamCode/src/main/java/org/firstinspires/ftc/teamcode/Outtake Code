@@ -1,43 +1,63 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.util.ElapsedTime; // to set time restraints on outtake if required
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp; // to be able to run in TeleOp (technically running constantly)
-import com.qualcomm.robotcore.hardware.DcMotor; // to install dcmotor library into code
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.util.Range; //we used the range method just to keep the motor powers to 1 and -1
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.Range;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.VisionPortal;
 
-double i = 0;
-@TeleOp (name = "Outtake", group = "OpMode") 
-public class OuttakeCode extends OpMode {
+import java.util.ArrayList;
 
-  private DcMotor outtakeMotor;
+@TeleOp(name = "Outtake", group = "OpMode")
+public class Outtake extends OpMode {
 
-  @Override 
-  public void init(){
-    
-    main = hardwareMap.get(DcMotor.class, "outtakeMotor");
+    private DcMotor outtakeMotor;
+    private double i = 0.01;
 
-    // sets motor direction to forward
-    outtakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+     AprilTagProcessor tagProcessor;
+     VisionPortal visionPortal;
 
-    // telemetry for debugging init
-    telemetry.addData("Status", "Motors init success");
-    telemetry.update();
+    @Override
+    public void init() {
+        outtakeMotor = hardwareMap.get(DcMotor.class, "outtakeMotor");
+        outtakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
+        tagProcessor = new AprilTagProcessor.Builder().build();
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(WebcamName.class, "Limelight 1"))
+                .addProcessor(tagProcessor)
+                .build();
+
+        telemetry.addData("Status", "Motors init success");
+        telemetry.update();
     }
 
-  public void loop(){
+    @Override
+    public void loop() {
 
-    if (i < 1){
-        i += 0.05
-      }
-    outtakeMotor.setPower(i);
+        ArrayList<AprilTagDetection> detections = tagProcessor.getDetections();
+
+        boolean tagDetected = (detections.size() > 0);
+
+
+        // Gradually ramp up to max speed
+        if (i < 1) {
+            i += 0.01;
+        }
+        i = Range.clip(i, 0, 1);
+
+        outtakeMotor.setPower(i);
+        telemetry.addData("Outtake Power", i);
+        telemetry.update();
+    }
+
+    @Override
+    public void stop() {
+        outtakeMotor.setPower(0);
+    }
 }
-}
-
-    
-
-
-
