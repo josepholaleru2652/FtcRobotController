@@ -145,7 +145,6 @@ public class Autonomous extends LinearOpMode {
         double TICKS_PER_REV = 537.7; // find ticks per full rotation for motors
         double WHEEL_DIAMETER_INCHES = 4.09; // find wheel diameter
         double TICKS_PER_INCH = TICKS_PER_REV / (Math.PI * WHEEL_DIAMETER_INCHES); // some math stuff ig
-
         int targetPosition = (int) (inches * TICKS_PER_INCH);
 
         // Set target positions for all motors
