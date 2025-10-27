@@ -40,6 +40,12 @@ public class DriveTrain extends OpMode {
         telemetry.addData("Status", "Motors init success");
         telemetry.update();
 
+        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
+        distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
+
+        telemetry.addData("Status", "Intake Initialized");
+        telemetry.update();
+
         //i dont see a specific problem with this its just it's not needed for Tele
         //what this does is it that doesnt run anything else until you start the code
         //although maybe it could be a problem if the entire function runs and we have to hit start every iteration
@@ -71,7 +77,17 @@ public class DriveTrain extends OpMode {
             backRightPower  /= max;
         }
         
-        
+        if (distanceSensor.getDistance(DistanceSensor.DistanceUnit.CM) < 5.0) { //5cm
+            intakeMotor.setPower(1.0); //run intake motor
+        } else {
+            intakeMotor.setPower(0.0); //stop intake motor
+        }
+        //if r2 pressed run intake
+        if(gamepad1.right_trigger > 0) {
+            intakeMotor.setPower(1.0);
+        } else {
+            intakeMotor.setPower(0.0);
+        }
 
         frontLeft.setPower(frontLeftPower);
         frontRight.setPower(frontRightPower);
