@@ -5,6 +5,8 @@
 */
 package org.firstinspires.ftc.teamcode;
 
+import android.annotation.SuppressLint;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -22,7 +24,7 @@ public class SparkFunOTOS extends LinearOpMode {
     com.qualcomm.hardware.sparkfun.SparkFunOTOS myOtos;
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode(){
         // Get a reference to the sensor
         myOtos = hardwareMap.get(com.qualcomm.hardware.sparkfun.SparkFunOTOS.class, "sensor_otos");
 
@@ -63,6 +65,7 @@ public class SparkFunOTOS extends LinearOpMode {
         }
     }
 
+    @SuppressLint("DefaultLocale")
     private void configureOtos() {
         telemetry.addLine("Configuring OTOS...");
         telemetry.update();
