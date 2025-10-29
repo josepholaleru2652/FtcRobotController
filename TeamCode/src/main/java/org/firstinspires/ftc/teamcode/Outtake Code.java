@@ -1,58 +1,74 @@
 package org.firstinspires.ftc.teamcode;
 
-
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import org.firstinspires.ftc.vision.VisionPortal;
 
-import java.util.ArrayList;
-
-@TeleOp(name = "Outtake", group = "OpMode")
+@TeleOp(name = "Outtake Diagnostic", group = "OpMode")
 public class Outtake extends OpMode {
 
     private DcMotor outtakeMotor;
     private double i = 0.01;
 
-     AprilTagProcessor tagProcessor;
-     VisionPortal visionPortal;
+    // Diagnostic variables
+    private ElapsedTime runtime = new ElapsedTime();
+    private double lastTime = 0;
+    private double lastPosition = 0;
+    private double velocityTicksPerSec = 0;
+    private double rpm = 0;
+
+    // GoBilda 6000 RPM motor encoder (bare motor, 28 ticks per rev)
+    private final double ticksPerRev = 28.0;
 
     @Override
     public void init() {
         outtakeMotor = hardwareMap.get(DcMotor.class, "outtakeMotor");
         outtakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        tagProcessor = new AprilTagProcessor.Builder().build();
-        visionPortal = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(WebcamName.class, "Limelight 1"))
-                .addProcessor(tagProcessor)
-                .build();
+        outtakeMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        outtakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         telemetry.addData("Status", "Motors init success");
         telemetry.update();
     }
 
     @Override
+    public void start() {
+        runtime.reset();
+        lastTime = runtime.milliseconds();
+        lastPosition = outtakeMotor.getCurrentPosition();
+    }
+
+    @Override
     public void loop() {
-
-        ArrayList<AprilTagDetection> detections = tagProcessor.getDetections();
-
-        boolean tagDetected = (detections.size() > 0);
-
-
-        // Gradually ramp up to max speed
+        // Gradually ramp up motor power
         if (i < 1) {
-            i += 0.01;
+            i += 0.0001;
         }
         i = Range.clip(i, 0, 1);
-
         outtakeMotor.setPower(i);
-        telemetry.addData("Outtake Power", i);
+
+        // --- Velocity & RPM Calculation ---
+        double currentTime = runtime.milliseconds();
+        double currentPosition = outtakeMotor.getCurrentPosition();
+        double deltaTime = (currentTime - lastTime) / 1000.0; // ms → sec
+
+        if (deltaTime > 0) {
+            velocityTicksPerSec = (currentPosition - lastPosition) / deltaTime;
+            rpm = (velocityTicksPerSec / ticksPerRev) * 60.0;
+        }
+
+        lastTime = currentTime;
+        lastPosition = currentPosition;
+
+        // --- Telemetry Output ---
+        telemetry.addData("t_ms", (int) currentTime);
+        telemetry.addData("cmdPower", "%.3f", i);
+        telemetry.addData("encoderPosition", currentPosition);
+        telemetry.addData("velocityTicksPerSec", "%.1f", velocityTicksPerSec);
+        telemetry.addData("motorRPM", "%.1f", rpm);
         telemetry.update();
     }
 
