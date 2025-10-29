@@ -20,8 +20,9 @@ public class Outtake extends OpMode {
     private double velocityTicksPerSec = 0;
     private double rpm = 0;
 
-    // GoBilda 6000 RPM motor encoder (bare motor, 28 ticks per rev)
-    private final double ticksPerRev = 28.0;
+    // goBILDA 5202-0002-0001 (6000 RPM, 1:1 Ratio)
+    // Encoder: 28 pulses per revolution (quadrature → 112 ticks per revolution)
+    private final double ticksPerRev = 112.0;
 
     @Override
     public void init() {
