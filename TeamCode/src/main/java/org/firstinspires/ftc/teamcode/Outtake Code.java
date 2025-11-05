@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.util.Range;
 public class Outtake extends OpMode {
 
     private DcMotor outtakeMotor;
-    private double i = 0.01;
+    private double i = -0.01;
 
     // Diagnostic variables
     private ElapsedTime runtime = new ElapsedTime();
@@ -46,7 +46,7 @@ public class Outtake extends OpMode {
     public void loop() {
         // Gradually ramp up motor power
         if (i < 1) {
-            i += 0.0001;
+            i -= 0.0001;
         }
         i = Range.clip(i, 0, 1);
         outtakeMotor.setPower(i);
