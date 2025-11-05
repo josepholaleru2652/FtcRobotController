@@ -45,7 +45,7 @@ public class Outtake extends OpMode {
     @Override
     public void loop() {
         // Gradually ramp up motor power
-        if (i < 1) {
+        if (i > -1) {
             i -= 0.0001;
         }
         i = Range.clip(i, 0, 1);
