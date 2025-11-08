@@ -17,20 +17,20 @@ public class OTOSFullAuto extends LinearOpMode {
     // --- Hardware ---
     //private SparkFunOTOS myOtos;
     private DcMotor leftFront, leftBack, rightFront, rightBack;
-    private DcMotor intakeMotor, outtakeMotor;
-    private Servo storageServo, doorServo;
+    //private DcMotor intakeMotor, outtakeMotor;
+    //private Servo storageServo, doorServo;
 
     int currentIndex = 0;
 
     // --- Config ---
-    private int startPosition = 1;
-    private final double[] servoPositions = {0.0, 0.33, 0.66};
-    private final double POSITION_TOLERANCE = 1.0; // inches
-    private final double HEADING_TOLERANCE = 2.0;    // degrees
+    //private int startPosition = 1;
+    //private final double[] servoPositions = {0.0, 0.33, 0.66};
+    //private final double POSITION_TOLERANCE = 1.0; // inches
+    //private final double HEADING_TOLERANCE = 2.0;    // degrees
 
-    private double lastDrumTime = 0;       // time when drum last moved
-    private final double DRUM_INTERVAL = 0.5; // seconds between positions
-    private boolean drumActive = false;
+    //private double lastDrumTime = 0;       // time when drum last moved
+    //private final double DRUM_INTERVAL = 0.5; // seconds between positions
+    //private boolean drumActive = false;
 
 
     @Override
