@@ -10,46 +10,49 @@ import com.qualcomm.robotcore.util.Range;
 @TeleOp(name = "TeleOp", group = "OpMode")
 public class TeleOp extends OpMode {
 
-    private Servo storageServo;
-    private Servo doorServo;
-    private DcMotor intakeMotor;
+    //private Servo storageServo;
+    //private Servo doorServo;
+    //private DcMotor intakeMotor;
     private DcMotor frontLeft;
     private DcMotor frontRight;
     private DcMotor backLeft;
     private DcMotor backRight;
-    private DcMotor outtakeMotor;
+    //private DcMotor outtakeMotor;
 
+    /*
     private double power = 0.0; // ramping outtake power
     private int powerToggle = -1; // -1 = off, 1 = on
     private boolean lastBumperState = false;
     private boolean lastLeftBumper = false;
     private boolean intakeRunning = false;
+    
 
     private double kickerPosition = 0.0;
     private boolean buttonHeld = false;
 
     private double[] servoPos = {0.0, 0.33, 0.66};
     private int i = 0;
+    */
 
     @Override
     public void init() {
-        storageServo = hardwareMap.get(Servo.class, "storageServo");
-        doorServo = hardwareMap.get(Servo.class, "doorServo");
+        //storageServo = hardwareMap.get(Servo.class, "storageServo");
+        //doorServo = hardwareMap.get(Servo.class, "doorServo");
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
-        outtakeMotor = hardwareMap.get(DcMotor.class, "outtakeMotor");
-        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
+        //outtakeMotor = hardwareMap.get(DcMotor.class, "outtakeMotor");
+        //intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
 
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        outtakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        //outtakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        storageServo.setPosition(servoPos[i]);
-        doorServo.setPosition(kickerPosition);
+        //storageServo.setPosition(servoPos[i]);
+        //doorServo.setPosition(kickerPosition);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -77,6 +80,7 @@ public class TeleOp extends OpMode {
         backLeft.setPower(bl);
         backRight.setPower(br);
 
+        /*
         // --- Intake Toggle ---
         boolean currentLeftBumper = gamepad1.left_bumper;
         if (currentLeftBumper && !lastLeftBumper) {
@@ -121,13 +125,14 @@ public class TeleOp extends OpMode {
         if (i < 2 && gamepad1.a) i++;
         if (i > 0 && gamepad1.b) i--;
         storageServo.setPosition(servoPos[i]);
+        */
 
         // --- Telemetry ---
         telemetry.addData("Drive", "FL: %.2f FR: %.2f BL: %.2f BR: %.2f", fl, fr, bl, br);
-        telemetry.addData("Intake", intakeRunning ? "On" : "Off");
-        telemetry.addData("Outtake Power", String.format("%.2f", power));
-        telemetry.addData("Storage Servo", "%.2f", servoPos[i]);
-        telemetry.addData("Kick Servo", "%.2f", kickerPosition);
+        //telemetry.addData("Intake", intakeRunning ? "On" : "Off");
+        //telemetry.addData("Outtake Power", String.format("%.2f", power));
+        //telemetry.addData("Storage Servo", "%.2f", servoPos[i]);
+        //telemetry.addData("Kick Servo", "%.2f", kickerPosition);
         telemetry.update();
     }
 }
