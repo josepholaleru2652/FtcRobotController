@@ -45,13 +45,17 @@ public class OTOSFullAuto extends LinearOpMode {
         waitForStart();
         if (!opModeIsActive()) return;
 
+        setDrivetrainPower(0, 0.5, 0);
+        sleep(1000)
+        setDrivetrainPower(0, 0, 0);
+
         // ====================================
         // =====   TEST BLOCKS (Step 4)  ======
         // ====================================
 
         // ---- OTOS Position Test (A) ----
         // Uncomment to move robot forward 12" check telemetry, and write down change in y (3 times if possible)
-        driveTo(new SparkFunOTOS.Pose2D(0, 12, 0), 0.3);
+        // driveTo(new SparkFunOTOS.Pose2D(0, 12, 0), 0.3);
 
         // ---- OTOS Strafe Test (B) ----
         // Uncomment to strafe 12" right check telemetry, and write down change in x (3 times if possible)
