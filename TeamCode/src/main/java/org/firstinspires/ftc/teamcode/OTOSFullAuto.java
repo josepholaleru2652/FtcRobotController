@@ -36,8 +36,8 @@ public class OTOSFullAuto extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         // === INIT & Configure OTOS === (Step 3)
-        //initHardware();
-        //configureOtos();
+        initHardware();
+        configureOtos();
 
         telemetry.addLine("Initialization complete. Ready to start.");
         telemetry.update();
@@ -51,7 +51,7 @@ public class OTOSFullAuto extends LinearOpMode {
 
         // ---- OTOS Position Test (A) ----
         // Uncomment to move robot forward 12" check telemetry, and write down change in y (3 times if possible)
-        // driveTo(new SparkFunOTOS.Pose2D(0, 12, 0), 0.3);
+        driveTo(new SparkFunOTOS.Pose2D(0, 12, 0), 0.3);
 
         // ---- OTOS Strafe Test (B) ----
         // Uncomment to strafe 12" right check telemetry, and write down change in x (3 times if possible)
