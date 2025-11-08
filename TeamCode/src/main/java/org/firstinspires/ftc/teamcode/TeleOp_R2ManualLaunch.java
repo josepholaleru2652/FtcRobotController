@@ -35,7 +35,7 @@ public class TeleOp_R2ManualLaunch extends OpMode {
     private boolean isRamping = false;   // True when outtake is spinning up
 
     private double outtakePower = 0.0;
-    private double rampSpeed = 0.1; // Speed to ramp up outtake
+    private double rampSpeed = 0.1; // Speed to ramp up outtake per loop iteration
     private ElapsedTime timer = new ElapsedTime();
     private double[] servoPositions = {0.0, 0.33, 0.66};
     private double flickStartTime = 0;
@@ -175,13 +175,19 @@ public class TeleOp_R2ManualLaunch extends OpMode {
 
             if (filling) {
                 handleFillingPhase();
-                intakeMotor.setPower(1.0); // Keep intake on during filling
             }
+            
+            // --- INTAKE CONTROL (Manual R1/Right Bumper) ---
+            if (filling && gamepad1.right_bumper) {
+                intakeMotor.setPower(1.0); // Intake runs only when R1 is held AND we are filling
+            } else {
+                intakeMotor.setPower(0.0); // Intake off otherwise
+            }
+
 
             // --- LAUNCHING LOGIC (Manual R2) ---
             if (!filling && !isLaunching && !isRamping) {
                 // Robot is in LAUNCH mode, waiting for driver.
-                intakeMotor.setPower(0); // Turn intake off during launch
 
                 // 1. Find the correct color to launch next
                 String targetColor = limelightColorOrder[launchIndex];
@@ -197,12 +203,13 @@ public class TeleOp_R2ManualLaunch extends OpMode {
                 telemetry.addData(">", "Press R2 (Right Trigger) to LAUNCH!");
 
                 if (gamepad1.right_trigger > 0.5) {
+                    // Start ramping sequence
                     isRamping = true;
                     timer.reset();
                 } else {
-                    // While waiting for R2, keep outtake at idle
-                    outtakeMotor.setPower(0.3);
-                    outtakePower = 0.3;
+                    // FIX: Keep outtake OFF (0.0) when waiting for R2
+                    outtakeMotor.setPower(0.0);
+                    outtakePower = 0.0;
                 }
             }
 
@@ -210,8 +217,10 @@ public class TeleOp_R2ManualLaunch extends OpMode {
             if (isRamping) {
                 if (outtakePower < 1.0) {
                     outtakePower += rampSpeed; // Ramp up
+                    // Clamp power at 1.0 to prevent overshoot
+                    outtakePower = Math.min(outtakePower, 1.0); 
                     outtakeMotor.setPower(outtakePower);
-                    telemetry.addData("Outtake", "Ramping up...");
+                    telemetry.addData("Outtake", "Ramping up... Power: " + String.format("%.2f", outtakePower));
                 } else {
                     // Fully ramped, ready to fire
                     outtakePower = 1.0;
@@ -224,28 +233,35 @@ public class TeleOp_R2ManualLaunch extends OpMode {
             }
 
             // --- Firing Kicker Process ---
-            if (isLaunching && (timer.milliseconds() - flickStartTime > 250)) {
-                doorServo.setPosition(0.0); // Retract kicker
-                outtakeMotor.setPower(0.3); // Set outtake back to idle
-                outtakePower = 0.3;
-                isLaunching = false;
-                launchIndex++; // Move to the next target color
+            if (isLaunching) {
+                // Wait for the kicker to complete its flick before resetting
+                if (timer.milliseconds() - flickStartTime > 250) {
+                    doorServo.setPosition(0.0); // Retract kicker
+                    
+                    // Reset outtake back to off state
+                    outtakeMotor.setPower(0.0); 
+                    outtakePower = 0.0;
+                    
+                    isLaunching = false;
+                    launchIndex++; // Move to the next target color
 
-                if (launchIndex >= 3) {
-                    // Finished launching all 3, reset
-                    filledSlots = 0;
-                    storageColorOrder = new String[3];
-                    filling = true; // Go back to filling mode
-                    launchIndex = 0;
-                } else {
-                    sleep(500); // Wait half a second before finding next ball
+                    if (launchIndex >= 3) {
+                        // Finished launching all 3, reset
+                        filledSlots = 0;
+                        storageColorOrder = new String[3];
+                        filling = true; // Go back to filling mode
+                        launchIndex = 0;
+                    } else {
+                        // Small delay before looking for the next ball
+                        sleep(500); 
+                    }
                 }
             }
 
             // --- Telemetry ---
-            outtakeMotor.setPower(outtakePower); // Ensure motor power is always set
+            // outtakeMotor.setPower(outtakePower); // Not needed here, power is set in FSM blocks
             telemetry.addData("Outtake Power", outtakePower);
-            telemetry.addData("Mode", filling ? "Filling" : "Launching");
+            telemetry.addData("Mode", filling ? "Filling (R1 for Intake)" : "Launching (R2 to Fire)");
             telemetry.addData("Stored", formatColorOrder(storageColorOrder));
             telemetry.addData("Target", formatColorOrder(limelightColorOrder));
             telemetry.addData("Next Target", (launchIndex < 3 && limelightColorOrder[launchIndex] != null) ? limelightColorOrder[launchIndex] : "Done");
@@ -280,9 +296,13 @@ public class TeleOp_R2ManualLaunch extends OpMode {
     // ====== FILLING PHASE ======
     private void handleFillingPhase() {
         String color = detectColor();
+        
+        // Only store if a ball is detected and we have space
         if (!color.equals("Unknown") && filledSlots < 3) {
             storageColorOrder[filledSlots] = color;
             filledSlots++;
+            
+            // Advance the drum if there's space for another ball
             if (filledSlots < 3) {
                 rotateToPosition(filledSlots);
             } else {
@@ -290,7 +310,7 @@ public class TeleOp_R2ManualLaunch extends OpMode {
                 filling = false;
                 launchIndex = 0;
             }
-            sleep(800); // Wait for ball to settle
+            sleep(800); // Wait for ball to settle and intake to clear
         }
     }
 
@@ -335,9 +355,10 @@ public class TeleOp_R2ManualLaunch extends OpMode {
         return 0; // Default to slot 0 if not found
     }
 
+    // FIX: Removed opModeIsActive() because this class extends OpMode, not LinearOpMode.
     private void sleep(long ms) {
         double start = timer.milliseconds();
-        while (timer.milliseconds() - start < ms && opModeIsActive()) {
+        while (timer.milliseconds() - start < ms) {
             // idle
         }
     }
