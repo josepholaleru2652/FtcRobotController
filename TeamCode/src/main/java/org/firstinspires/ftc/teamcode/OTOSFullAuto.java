@@ -15,7 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class OTOSFullAuto extends LinearOpMode {
 
     // --- Hardware ---
-    private SparkFunOTOS myOtos;
+    //private SparkFunOTOS myOtos;
     private DcMotor leftFront, leftBack, rightFront, rightBack;
     private DcMotor intakeMotor, outtakeMotor;
     private Servo storageServo, doorServo;
@@ -37,7 +37,7 @@ public class OTOSFullAuto extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         // === INIT & Configure OTOS === (Step 3)
         initHardware();
-        configureOtos();
+        //configureOtos();
 
         telemetry.addLine("Initialization complete. Ready to start.");
         telemetry.update();
