@@ -1,5 +1,4 @@
 package org.firstinspires.ftc.teamcode;
-
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -9,12 +8,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import android.graphics.Color;
 import java.util.Arrays;
-// All Vision/AprilTag imports have been removed
+
+import org.w3c.dom.ranges.Range;
 
 @TeleOp(name = "FullTeleOp_R2ManualLaunch", group = "OpMode")
 public class TeleOp_R2ManualLaunch extends OpMode {
 
-    // --- Hardware Declarations ---
     private Servo storageServo;
     private Servo doorServo;
     private ColorSensor colorSensor;
@@ -24,344 +23,177 @@ public class TeleOp_R2ManualLaunch extends OpMode {
     private DcMotor backLeft;
     private DcMotor backRight;
     private DcMotor outtakeMotor;
+    
+    //use if colorsensor
+    //private String[] storageColorOrder = new String[3];
+    //private int filledSlots = 0;
+    //private boolean filling = true;
+    //private boolean isLaunching = false;
 
-    // --- Storage & State Logic ---
-    private String[] storageColorOrder = new String[3]; // What's in the drum
-    private String[] limelightColorOrder = new String[3]; // What we *want* to launch
-    private int filledSlots = 0;
-    private int launchIndex = 0;
-    private boolean filling = true;
-    private boolean isLaunching = false; // True when kicker servo is moving
-    private boolean isRamping = false;   // True when outtake is spinning up
-
+    private double kickerPosition = 0.0;
     private double outtakePower = 0.0;
-    private double rampSpeed = 0.1; // Speed to ramp up outtake per loop iteration
-    private ElapsedTime timer = new ElapsedTime();
-    private double[] servoPositions = {0.0, 0.33, 0.66};
-    private double flickStartTime = 0;
+    private double power = 0.01;
+    private double[] servoPos = {0.0, 0.33, 0.66};
+    private int i = 0;
+    boolean changed = false;
+    boolean powerChanged = false;
+    boolean powerIncrease = true;
 
-    // --- Manual Color Input System ---
-    private int inputSlot = 0; // Tracks which slot (0, 1, or 2) we are setting
-    private boolean isOrderSet = false; // Becomes true when an order is selected
-    // Edge detection for button presses
-    private boolean a_now = false, a_prev = false;
-    private boolean b_now = false, b_prev = false;
-    private boolean y_now = false, y_prev = false; // Added Y button
-
-    // Define preset launch orders
-    private final String[] ORDER_A = {"Green", "Purple", "Purple"}; // Example order 1
-    private final String[] ORDER_B = {"Purple", "Green", "Purple"}; // Example order 2
-    private final String[] ORDER_Y = {"Purple", "Purple", "Green"}; // Example order 3
 
     @Override
-    public void init() {
-        // Map all hardware
+    public void init(){
         storageServo = hardwareMap.get(Servo.class, "storageServo");
         doorServo = hardwareMap.get(Servo.class, "doorServo");
-        colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
-        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
         outtakeMotor = hardwareMap.get(DcMotor.class, "outtakeMotor");
 
-        // Set motor directions
+
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
         outtakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        // Assuming intake runs forward
-        intakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        // Set initial servo positions
-        storageServo.setPosition(servoPositions[0]);
-        doorServo.setPosition(0.0);
-
-        // --- Initialize Manual Input System ---
-        limelightColorOrder = new String[3]; // All slots are null
-        isOrderSet = false;
-
-        telemetry.addData("Status", "All Systems Initialized");
-        telemetry.addData(">", "Ready to select color order...");
-        telemetry.addData(">", "Press A, B, or Y on Gamepad 1.");
+        storageServo.setPosition(servoPos[i]);
+        doorServo.setPosition(kickerPosition);
+        
+        telemetry.addData("Status", "everything initialized");
         telemetry.update();
     }
+    public void loop(){
 
-    /**
-     * This method runs repeatedly on the Driver Hub
-     * AFTER "Init" is pressed, but BEFORE "Start" is pressed.
-     */
-    @Override
-    public void init_loop() {
-        // Update current button states
-        a_now = gamepad1.a;
-        b_now = gamepad1.b;
-        y_now = gamepad1.y;
+        //drive train code
 
-        // --- Handle Input ---
-        if (!isOrderSet) {
-            // Select Order A: Green, Purple, Purple
-            if (a_now && !a_prev) {
-                limelightColorOrder = ORDER_A;
-                isOrderSet = true;
-            }
-            // Select Order B: Purple, Green, Purple
-            if (b_now && !b_prev) {
-                limelightColorOrder = ORDER_B;
-                isOrderSet = true;
-            }
-            // Select Order Y: Purple, Purple, Green
-            if (y_now && !y_prev) {
-                limelightColorOrder = ORDER_Y;
-                isOrderSet = true;
-            }
+        double drive = -gamepad1.left_stick_y;
+        double turn = gamepad1.right_stick_x;
+        double strafe = gamepad1.left_stick_x;
+
+        double frontLeftPower = drive + strafe + turn;
+        double frontRightPower = drive - strafe - turn;
+        double backLeftPower = drive - strafe + turn;
+        double backRightPower = drive + strafe - turn;
+
+        double max = Math.max(Math.abs(frontLeftPower),
+            Math.max(Math.abs(frontRightPower),
+                    Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))));
+
+        if (max > 1.0) {
+            frontLeftPower /= max;
+            frontRightPower /= max;
+            backLeftPower /= max;
+            backRightPower /= max;
         }
-
-        // --- Update Telemetry ---
-        telemetry.addData("--- MANUAL ORDER SELECTION ---", "");
-        telemetry.addData("A", "G, P, P (Order A)");
-        telemetry.addData("B", "P, G, P (Order B)");
-        telemetry.addData("Y", "P, P, G (Order Y)");
-        telemetry.addData("Launch Order", formatColorOrder(limelightColorOrder));
-
-        // Check if order is complete
-        if (isOrderSet) {
-            telemetry.addData("STATUS", "LOCKED! Order Selected: " + formatColorOrder(limelightColorOrder));
-        } else {
-            telemetry.addData("STATUS", "WAITING FOR SELECTION...");
-        }
-
-        // Update previous button states for edge detection
-        a_prev = a_now;
-        b_prev = b_now;
-        y_prev = y_now;
-
-        telemetry.update();
-    }
-
-    @Override
-    public void loop() {
-        // Only run the robot logic if the order was successfully set in init_loop
-        if (isOrderSet) {
-            // --- Mecanum Drive Code ---
-            double drive = -gamepad1.left_stick_y;
-            double turn = gamepad1.right_stick_x;
-            double strafe = gamepad1.left_stick_x;
-
-            double frontLeftPower = drive + strafe + turn;
-            double frontRightPower = drive - strafe - turn;
-            double backLeftPower = drive - strafe + turn;
-            double backRightPower = drive + strafe - turn;
-
-            double max = Math.max(Math.abs(frontLeftPower),
-                    Math.max(Math.abs(frontRightPower),
-                            Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))));
-
-            if (max > 1.0) {
-                frontLeftPower /= max;
-                frontRightPower /= max;
-                backLeftPower /= max;
-                backRightPower /= max;
-            }
 
             frontLeft.setPower(frontLeftPower);
             frontRight.setPower(frontRightPower);
             backLeft.setPower(backLeftPower);
             backRight.setPower(backRightPower);
 
-            // --- Storage and Launching FSM ---
 
-            if (filling) {
-                handleFillingPhase();
-            }
-            
-            // --- INTAKE CONTROL (Manual R1/Right Bumper) ---
-            if (filling && gamepad1.right_bumper) {
-                intakeMotor.setPower(1.0); // Intake runs only when R1 is held AND we are filling
-            } else {
-                intakeMotor.setPower(0.0); // Intake off otherwise
-            }
-
-
-            // --- LAUNCHING LOGIC (Manual R2) ---
-            if (!filling && !isLaunching && !isRamping) {
-                // Robot is in LAUNCH mode, waiting for driver.
-
-                // 1. Find the correct color to launch next
-                String targetColor = limelightColorOrder[launchIndex];
-
-                // 2. Find where that color is in our storage
-                int colorSlot = findColorIndex(storageColorOrder, targetColor);
-
-                // 3. Rotate storage to that position *before* launching
-                rotateToPosition(colorSlot);
-
-                // 4. Now, wait for the driver to press R2
-                telemetry.addData("Launcher", "Ball ready: " + (targetColor != null ? targetColor : "N/A"));
-                telemetry.addData(">", "Press R2 (Right Trigger) to LAUNCH!");
-
-                if (gamepad1.right_trigger > 0.5) {
-                    // Start ramping sequence
-                    isRamping = true;
-                    timer.reset();
-                } else {
-                    // FIX: Keep outtake OFF (0.0) when waiting for R2
-                    outtakeMotor.setPower(0.0);
-                    outtakePower = 0.0;
+            if(gamepad1.right_trigger>0.5){
+                kickerPosition += 0.25;
+                if (kickerPosition > 0.25){
+                    kickerPosition = 0.25;
                 }
             }
 
-            // --- Outtake Ramping Process ---
-            if (isRamping) {
-                if (outtakePower < 1.0) {
-                    outtakePower += rampSpeed; // Ramp up
-                    // Clamp power at 1.0 to prevent overshoot
-                    outtakePower = Math.min(outtakePower, 1.0); 
-                    outtakeMotor.setPower(outtakePower);
-                    telemetry.addData("Outtake", "Ramping up... Power: " + String.format("%.2f", outtakePower));
-                } else {
-                    // Fully ramped, ready to fire
-                    outtakePower = 1.0;
-                    outtakeMotor.setPower(outtakePower);
-                    isRamping = false;     // Stop ramping
-                    isLaunching = true;    // Start launching
-                    flickStartTime = timer.milliseconds();
-                    doorServo.setPosition(1.0); // Fire kicker
+            if(gamepad1.right_trigger<= 0.5){
+                kickerPosition = 0.0;
+                if (kickerPosition<0.0){
+                    kickerPosition = 0.0;
                 }
             }
+            if (gamepad1.right_trigger > 0.5 && !changed) {
+                if (kickerPosition == 0.0) {
+                    kickerPosition = 0.25;
+                } else {
+                    kickerPosition = 0.0;
+                }
+                changed = true;
+                } else if (gamepad1.right_trigger <= 0.5) {
+                    changed = false;
+                }
 
-            // --- Firing Kicker Process ---
-            if (isLaunching) {
-                // Wait for the kicker to complete its flick before resetting
-                if (timer.milliseconds() - flickStartTime > 250) {
-                    doorServo.setPosition(0.0); // Retract kicker
-                    
-                    // Reset outtake back to off state
-                    outtakeMotor.setPower(0.0); 
-                    outtakePower = 0.0;
-                    
-                    isLaunching = false;
-                    launchIndex++; // Move to the next target color
+                doorServo.setPosition(kickerPosition);
 
-                    if (launchIndex >= 3) {
-                        // Finished launching all 3, reset
-                        filledSlots = 0;
-                        storageColorOrder = new String[3];
-                        filling = true; // Go back to filling mode
-                        launchIndex = 0;
+                if (gamepad1.right_bumper > 0.5 && !powerChanged) {
+                    if (powerIncrease) {
+                        power += 0.1;
+                    if (power > 1.0) power = 1.0;
                     } else {
-                        // Small delay before looking for the next ball
-                        sleep(500); 
+                        power -= 0.1;
+                        if (power < 0.0) power = 0.0;
                     }
-                }
+                    powerIncrease = !powerIncrease;
+                    powerChanged = true;
+                    } else if (gamepad1.right_bumper <= 0.5) {
+                        powerChanged = false;
+                    }
+
+outtakeMotor.setPower(power);
+            power = Range.clip(power, 0.0, 1.0);
+            outtakeMotor.setPower(power);
+
+
+            if (i<2 && gamepad.a > 0.5){
+                i++;
             }
-
-            // --- Telemetry ---
-            // outtakeMotor.setPower(outtakePower); // Not needed here, power is set in FSM blocks
-            telemetry.addData("Outtake Power", outtakePower);
-            telemetry.addData("Mode", filling ? "Filling (R1 for Intake)" : "Launching (R2 to Fire)");
-            telemetry.addData("Stored", formatColorOrder(storageColorOrder));
-            telemetry.addData("Target", formatColorOrder(limelightColorOrder));
-            telemetry.addData("Next Target", (launchIndex < 3 && limelightColorOrder[launchIndex] != null) ? limelightColorOrder[launchIndex] : "Done");
-            telemetry.addData("Filled Slots", filledSlots);
-            telemetry.update();
-
-        } else {
-            // This runs if "Start" was pressed before the order was set
-            telemetry.addData("ERROR", "Color order not set!");
-            telemetry.addData(">", "Please restart the OpMode and set the order.");
-            telemetry.update();
-        }
-    }
-
-    // A helper function to make the array look nice on telemetry
-    private String formatColorOrder(String[] order) {
-        String[] displayOrder = new String[3];
-        for (int i = 0; i < 3; i++) {
-            if (order[i] == null) {
-                displayOrder[i] = "-"; // Empty slot
-            } else if (order[i].equals("Purple")) {
-                displayOrder[i] = "P";
-            } else if (order[i].equals("Green")) {
-                displayOrder[i] = "G";
-            } else {
-                displayOrder[i] = "?";
+            if (i == 3){
+                telemetry.addData("Important", "please rotate back to position 0.0 (storage servo)");
+                telemetry.update();
             }
-        }
-        return Arrays.toString(displayOrder); // e.g., "[P, G, -]"
-    }
-
-    // ====== FILLING PHASE ======
-    private void handleFillingPhase() {
-        String color = detectColor();
-        
-        // Only store if a ball is detected and we have space
-        if (!color.equals("Unknown") && filledSlots < 3) {
-            storageColorOrder[filledSlots] = color;
-            filledSlots++;
+            if (i>0 && gamepad.b > 0.5){
+                i--;
+            }
             
-            // Advance the drum if there's space for another ball
-            if (filledSlots < 3) {
-                rotateToPosition(filledSlots);
-            } else {
-                // We are now full, switch to launching mode
-                filling = false;
-                launchIndex = 0;
-            }
-            sleep(800); // Wait for ball to settle and intake to clear
-        }
-    }
-
-    // ====== HELPER FUNCTIONS ======
-
-    private void rotateToPosition(int slotIndex) {
-        if (slotIndex >= 0 && slotIndex < 3) {
-            storageServo.setPosition(servoPositions[slotIndex]);
-        }
-    }
-
-    private String detectColor() {
-        int red = colorSensor.red();
-        int green = colorSensor.green();
-        int blue = colorSensor.blue();
-
-        float[] hsv = new float[3];
-        Color.RGBToHSV(red, green, blue, hsv);
-        float hue = hsv[0];
-
-        // Loosened Purple range slightly
-        if (hue >= 200 && hue <= 260) {
-            return "Purple";
-        } else if (hue >= 125 && hue <= 180) {
-            return "Green";
+        //mention if robot is strafing, turning, or going forward/backwards
+        telemetry.addData("Status", "Running");
+        if (Math.abs(strafe) > 0.1) {
+            telemetry.addData("Movement", "Strafing");
+        } else if (Math.abs(turn) > 0.1) {
+            telemetry.addData("Movement", "Turning");
+        } else if (Math.abs(drive) > 0.1) {
+            telemetry.addData("Movement", "Driving");
         } else {
-            return "Unknown";
+            telemetry.addData("Movement", "Idle");
         }
+        telemetry.addData("frontLeftPower", frontLeftPower);
+        //mention if negative or positive
+        if (frontLeftPower > 0) {
+            telemetry.addData("frontLeftDirection", "Backward");
+        } else if (frontLeftPower < 0) {
+            telemetry.addData("frontLeftDirection", "Forward");
+        } else {
+            telemetry.addData("frontLeftDirection", "Stopped");
+        }
+        telemetry.addData("frontRightPower", frontRightPower);
+        //mention if negative or positive
+        if (frontRightPower > 0) {
+            telemetry.addData("frontRightDirection", "Backward");
+        } else if (frontRightPower < 0) {
+            telemetry.addData("frontRightDirection", "Forward");
+        } else {
+            telemetry.addData("frontRightDirection", "Stopped");
+        }
+        telemetry.addData("backLeftPower", backLeftPower);
+        //mention if negative or positive
+        if (backLeftPower > 0) {
+            telemetry.addData("backLeftDirection", "Backward");
+        } else if (backLeftPower < 0) {
+            telemetry.addData("backLeftDirection", "Forward");
+        } else {
+            telemetry.addData("backLeftDirection", "Stopped");
+        }
+        telemetry.addData("backRightPower", backRightPower);
+        if (backRightPower > 0) {
+            telemetry.addData("backRightDirection", "Backward");
+        } else if (backRightPower < 0) {
+            telemetry.addData("backRightDirection", "Forward");
+        } else {
+            telemetry.addData("backRightDirection", "Stopped");
+        }
+        telemetry.update();
     }
-
-    private int findColorIndex(String[] arr, String color) {
-        // Added a check for a null target color
-        if (color == null) {
-            return 0; // Don't move if target is null
-        }
-
-        for (int i = 0; i < arr.length; i++) {
-            if (arr[i] != null && arr[i].equals(color)) {
-                return i;
-            }
-        }
-        return 0; // Default to slot 0 if not found
-    }
-
-    // FIX: Removed opModeIsActive() because this class extends OpMode, not LinearOpMode.
-    private void sleep(long ms) {
-        double start = timer.milliseconds();
-        while (timer.milliseconds() - start < ms) {
-            // idle
-        }
-    }
-
-    // All Limelight/AprilTag functions have been removed.
 }
