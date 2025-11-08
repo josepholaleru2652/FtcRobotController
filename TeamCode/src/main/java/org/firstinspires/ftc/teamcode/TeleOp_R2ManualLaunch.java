@@ -42,11 +42,16 @@ public class TeleOp_R2ManualLaunch extends OpMode {
 
     // --- Manual Color Input System ---
     private int inputSlot = 0; // Tracks which slot (0, 1, or 2) we are setting
-    private boolean isOrderSet = false; // Becomes true when all 3 slots are set
+    private boolean isOrderSet = false; // Becomes true when an order is selected
     // Edge detection for button presses
     private boolean a_now = false, a_prev = false;
     private boolean b_now = false, b_prev = false;
-    private boolean x_now = false, x_prev = false;
+    private boolean y_now = false, y_prev = false; // Added Y button
+
+    // Define preset launch orders
+    private final String[] ORDER_A = {"Green", "Purple", "Purple"}; // Example order 1
+    private final String[] ORDER_B = {"Purple", "Green", "Purple"}; // Example order 2
+    private final String[] ORDER_Y = {"Purple", "Purple", "Green"}; // Example order 3
 
     @Override
     public void init() {
@@ -76,12 +81,11 @@ public class TeleOp_R2ManualLaunch extends OpMode {
 
         // --- Initialize Manual Input System ---
         limelightColorOrder = new String[3]; // All slots are null
-        inputSlot = 0;
         isOrderSet = false;
 
         telemetry.addData("Status", "All Systems Initialized");
-        telemetry.addData(">", "Ready to set color order...");
-        telemetry.addData(">", "Press A for GREEN, B for PURPLE");
+        telemetry.addData(">", "Ready to select color order...");
+        telemetry.addData(">", "Press A, B, or Y on Gamepad 1.");
         telemetry.update();
     }
 
@@ -94,49 +98,45 @@ public class TeleOp_R2ManualLaunch extends OpMode {
         // Update current button states
         a_now = gamepad1.a;
         b_now = gamepad1.b;
-        x_now = gamepad1.x;
+        y_now = gamepad1.y;
 
         // --- Handle Input ---
         if (!isOrderSet) {
-            // Add GREEN (Button A)
+            // Select Order A: Green, Purple, Purple
             if (a_now && !a_prev) {
-                limelightColorOrder[inputSlot] = "Green";
-                inputSlot++;
+                limelightColorOrder = ORDER_A;
+                isOrderSet = true;
             }
-            // Add PURPLE (Button B)
+            // Select Order B: Purple, Green, Purple
             if (b_now && !b_prev) {
-                limelightColorOrder[inputSlot] = "Purple";
-                inputSlot++;
+                limelightColorOrder = ORDER_B;
+                isOrderSet = true;
             }
-            // BACKSPACE (Button X)
-            if (x_now && !x_prev) {
-                if (inputSlot > 0) {
-                    inputSlot--;
-                    limelightColorOrder[inputSlot] = null; // Clear the slot
-                }
+            // Select Order Y: Purple, Purple, Green
+            if (y_now && !y_prev) {
+                limelightColorOrder = ORDER_Y;
+                isOrderSet = true;
             }
         }
 
         // --- Update Telemetry ---
-        telemetry.addData("--- MANUAL ORDER ---", "");
-        telemetry.addData("Press A", "GREEN");
-        telemetry.addData("Press B", "PURPLE");
-        telemetry.addData("Press X", "BACKSPACE/UNDO");
+        telemetry.addData("--- MANUAL ORDER SELECTION ---", "");
+        telemetry.addData("A", "G, P, P (Order A)");
+        telemetry.addData("B", "P, G, P (Order B)");
+        telemetry.addData("Y", "P, P, G (Order Y)");
         telemetry.addData("Launch Order", formatColorOrder(limelightColorOrder));
 
         // Check if order is complete
-        if (inputSlot >= 3) {
-            isOrderSet = true;
-            telemetry.addData("STATUS", "LOCKED! Ready to Start.");
+        if (isOrderSet) {
+            telemetry.addData("STATUS", "LOCKED! Order Selected: " + formatColorOrder(limelightColorOrder));
         } else {
-            isOrderSet = false; // In case user hit backspace
-            telemetry.addData("Setting Slot", (inputSlot + 1) + "/3");
+            telemetry.addData("STATUS", "WAITING FOR SELECTION...");
         }
 
         // Update previous button states for edge detection
         a_prev = a_now;
         b_prev = b_now;
-        x_prev = x_now;
+        y_prev = y_now;
 
         telemetry.update();
     }
